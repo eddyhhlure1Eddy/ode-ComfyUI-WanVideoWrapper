@@ -1,6 +1,4 @@
-# Copied from https://github.com/huggingface/diffusers/blob/main/src/diffusers/schedulers/scheduling_dpmsolver_multistep.py
-# Convert dpm solver for flow matching
-# Copyright 2024-2025 The Alibaba Wan Team Authors. All rights reserved.
+
 
 import inspect
 import math
@@ -67,60 +65,6 @@ def retrieve_timesteps(
 
 
 class FlowDPMSolverMultistepScheduler(SchedulerMixin, ConfigMixin):
-    """
-    `FlowDPMSolverMultistepScheduler` is a fast dedicated high-order solver for diffusion ODEs.
-    This model inherits from [`SchedulerMixin`] and [`ConfigMixin`]. Check the superclass documentation for the generic
-    methods the library implements for all schedulers such as loading and saving.
-    Args:
-        num_train_timesteps (`int`, defaults to 1000):
-            The number of diffusion steps to train the model. This determines the resolution of the diffusion process.
-        solver_order (`int`, defaults to 2):
-            The DPMSolver order which can be `1`, `2`, or `3`. It is recommended to use `solver_order=2` for guided
-            sampling, and `solver_order=3` for unconditional sampling. This affects the number of model outputs stored
-            and used in multistep updates.
-        prediction_type (`str`, defaults to "flow_prediction"):
-            Prediction type of the scheduler function; must be `flow_prediction` for this scheduler, which predicts
-            the flow of the diffusion process.
-        shift (`float`, *optional*, defaults to 1.0):
-            A factor used to adjust the sigmas in the noise schedule. It modifies the step sizes during the sampling
-            process.
-        use_dynamic_shifting (`bool`, defaults to `False`):
-            Whether to apply dynamic shifting to the timesteps based on image resolution. If `True`, the shifting is
-            applied on the fly.
-        thresholding (`bool`, defaults to `False`):
-            Whether to use the "dynamic thresholding" method. This method adjusts the predicted sample to prevent
-            saturation and improve photorealism.
-        dynamic_thresholding_ratio (`float`, defaults to 0.995):
-            The ratio for the dynamic thresholding method. Valid only when `thresholding=True`.
-        sample_max_value (`float`, defaults to 1.0):
-            The threshold value for dynamic thresholding. Valid only when `thresholding=True` and
-            `algorithm_type="dpmsolver++"`.
-        algorithm_type (`str`, defaults to `dpmsolver++`):
-            Algorithm type for the solver; can be `dpmsolver`, `dpmsolver++`, `sde-dpmsolver` or `sde-dpmsolver++`. The
-            `dpmsolver` type implements the algorithms in the [DPMSolver](https://huggingface.co/papers/2206.00927)
-            paper, and the `dpmsolver++` type implements the algorithms in the
-            [DPMSolver++](https://huggingface.co/papers/2211.01095) paper. It is recommended to use `dpmsolver++` or
-            `sde-dpmsolver++` with `solver_order=2` for guided sampling like in Stable Diffusion.
-        solver_type (`str`, defaults to `midpoint`):
-            Solver type for the second-order solver; can be `midpoint` or `heun`. The solver type slightly affects the
-            sample quality, especially for a small number of steps. It is recommended to use `midpoint` solvers.
-        lower_order_final (`bool`, defaults to `True`):
-            Whether to use lower-order solvers in the final steps. Only valid for < 15 inference steps. This can
-            stabilize the sampling of DPMSolver for steps < 15, especially for steps <= 10.
-        euler_at_final (`bool`, defaults to `False`):
-            Whether to use Euler's method in the final step. It is a trade-off between numerical stability and detail
-            richness. This can stabilize the sampling of the SDE variant of DPMSolver for small number of inference
-            steps, but sometimes may result in blurring.
-        final_sigmas_type (`str`, *optional*, defaults to "zero"):
-            The final `sigma` value for the noise schedule during the sampling process. If `"sigma_min"`, the final
-            sigma is the same as the last sigma in the training schedule. If `zero`, the final sigma is set to 0.
-        lambda_min_clipped (`float`, defaults to `-inf`):
-            Clipping threshold for the minimum value of `lambda(t)` for numerical stability. This is critical for the
-            cosine (`squaredcos_cap_v2`) noise schedule.
-        variance_type (`str`, *optional*):
-            Set to "learned" or "learned_range" for diffusion models that predict variance. If set, the model's output
-            contains the predicted Gaussian variance.
-    """
 
     _compatibles = [e.name for e in KarrasDiffusionSchedulers]
     order = 1
@@ -200,26 +144,14 @@ class FlowDPMSolverMultistepScheduler(SchedulerMixin, ConfigMixin):
 
     @property
     def step_index(self):
-        """
-        The index counter for current timestep. It will increase 1 after each scheduler step.
-        """
         return self._step_index
 
     @property
     def begin_index(self):
-        """
-        The index for the first timestep. It should be set from pipeline with `set_begin_index` method.
-        """
         return self._begin_index
 
     # Copied from diffusers.schedulers.scheduling_dpmsolver_multistep.DPMSolverMultistepScheduler.set_begin_index
     def set_begin_index(self, begin_index: int = 0):
-        """
-        Sets the begin index for the scheduler. This function should be run from pipeline before the inference.
-        Args:
-            begin_index (`int`):
-                The begin index for the scheduler.
-        """
         self._begin_index = begin_index
 
     # Modified from diffusers.schedulers.scheduling_flow_match_euler_discrete.FlowMatchEulerDiscreteScheduler.set_timesteps
@@ -232,14 +164,7 @@ class FlowDPMSolverMultistepScheduler(SchedulerMixin, ConfigMixin):
         shift: Optional[Union[float, None]] = None,
         use_beta_sigmas: Optional[bool] = False,
     ):
-        """
-        Sets the discrete timesteps used for the diffusion chain (to be run before inference).
-        Args:
-            num_inference_steps (`int`):
-                Total number of the spacing of the time steps.
-            device (`str` or `torch.device`, *optional*):
-                The device to which the timesteps should be moved to. If `None`, the timesteps are not moved.
-        """
+
 
         if self.config.use_dynamic_shifting and mu is None:
             raise ValueError(
@@ -287,7 +212,7 @@ class FlowDPMSolverMultistepScheduler(SchedulerMixin, ConfigMixin):
         self, in_sigmas: torch.Tensor, num_inference_steps: int, alpha: float = 0.6, beta: float = 0.6
     ) -> torch.Tensor:
         import scipy
-        """From "Beta Sampling is All You Need" [arXiv:2407.12173] (Lee et. al, 2024)"""
+
 
         # Hack to make sure that other schedulers which copy this function don't break
         # TODO: Add this logic to the other schedulers
@@ -316,14 +241,6 @@ class FlowDPMSolverMultistepScheduler(SchedulerMixin, ConfigMixin):
         return sigmas
     # Copied from diffusers.schedulers.scheduling_ddpm.DDPMScheduler._threshold_sample
     def _threshold_sample(self, sample: torch.Tensor) -> torch.Tensor:
-        """
-        "Dynamic thresholding: At each sampling step we set s to a certain percentile absolute pixel value in xt0 (the
-        prediction of x_0 at timestep t), and if s > 1, then we threshold xt0 to the range [-s, s] and then divide by
-        s. Dynamic thresholding pushes saturated pixels (those near -1 and 1) inwards, thereby actively preventing
-        pixels from saturation at each step. We find that dynamic thresholding results in significantly better
-        photorealism as well as better image-text alignment, especially when using very large guidance weights."
-        https://arxiv.org/abs/2205.11487
-        """
         dtype = sample.dtype
         batch_size, channels, *remaining_dims = sample.shape
 
@@ -371,23 +288,7 @@ class FlowDPMSolverMultistepScheduler(SchedulerMixin, ConfigMixin):
         sample: torch.Tensor = None,
         **kwargs,
     ) -> torch.Tensor:
-        """
-        Convert the model output to the corresponding type the DPMSolver/DPMSolver++ algorithm needs. DPM-Solver is
-        designed to discretize an integral of the noise prediction model, and DPM-Solver++ is designed to discretize an
-        integral of the data prediction model.
-        <Tip>
-        The algorithm and model type are decoupled. You can use either DPMSolver or DPMSolver++ for both noise
-        prediction and data prediction models.
-        </Tip>
-        Args:
-            model_output (`torch.Tensor`):
-                The direct output from the learned diffusion model.
-            sample (`torch.Tensor`):
-                A current instance of a sample created by the diffusion process.
-        Returns:
-            `torch.Tensor`:
-                The converted model output.
-        """
+
         timestep = args[0] if len(args) > 0 else kwargs.pop("timestep", None)
         if sample is None:
             if len(args) > 1:
@@ -446,17 +347,7 @@ class FlowDPMSolverMultistepScheduler(SchedulerMixin, ConfigMixin):
         noise: Optional[torch.Tensor] = None,
         **kwargs,
     ) -> torch.Tensor:
-        """
-        One step for the first-order DPMSolver (equivalent to DDIM).
-        Args:
-            model_output (`torch.Tensor`):
-                The direct output from the learned diffusion model.
-            sample (`torch.Tensor`):
-                A current instance of a sample created by the diffusion process.
-        Returns:
-            `torch.Tensor`:
-                The sample tensor at the previous timestep.
-        """
+
         timestep = args[0] if len(args) > 0 else kwargs.pop("timestep", None)
         prev_timestep = args[1] if len(args) > 1 else kwargs.pop(
             "prev_timestep", None)

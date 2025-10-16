@@ -1,6 +1,4 @@
-# Copied from https://github.com/huggingface/diffusers/blob/v0.31.0/src/diffusers/schedulers/scheduling_unipc_multistep.py
-# Convert unipc for flow matching
-# Copyright 2024-2025 The Alibaba Wan Team Authors. All rights reserved.
+
 
 import math
 from typing import List, Optional, Tuple, Union
@@ -18,57 +16,6 @@ if is_scipy_available():
 
 
 class FlowUniPCMultistepScheduler(SchedulerMixin, ConfigMixin):
-    """
-    `UniPCMultistepScheduler` is a training-free framework designed for the fast sampling of diffusion models.
-
-    This model inherits from [`SchedulerMixin`] and [`ConfigMixin`]. Check the superclass documentation for the generic
-    methods the library implements for all schedulers such as loading and saving.
-
-    Args:
-        num_train_timesteps (`int`, defaults to 1000):
-            The number of diffusion steps to train the model.
-        solver_order (`int`, default `2`):
-            The UniPC order which can be any positive integer. The effective order of accuracy is `solver_order + 1`
-            due to the UniC. It is recommended to use `solver_order=2` for guided sampling, and `solver_order=3` for
-            unconditional sampling.
-        prediction_type (`str`, defaults to "flow_prediction"):
-            Prediction type of the scheduler function; must be `flow_prediction` for this scheduler, which predicts
-            the flow of the diffusion process.
-        thresholding (`bool`, defaults to `False`):
-            Whether to use the "dynamic thresholding" method. This is unsuitable for latent-space diffusion models such
-            as Stable Diffusion.
-        dynamic_thresholding_ratio (`float`, defaults to 0.995):
-            The ratio for the dynamic thresholding method. Valid only when `thresholding=True`.
-        sample_max_value (`float`, defaults to 1.0):
-            The threshold value for dynamic thresholding. Valid only when `thresholding=True` and `predict_x0=True`.
-        predict_x0 (`bool`, defaults to `True`):
-            Whether to use the updating algorithm on the predicted x0.
-        solver_type (`str`, default `bh2`):
-            Solver type for UniPC. It is recommended to use `bh1` for unconditional sampling when steps < 10, and `bh2`
-            otherwise.
-        lower_order_final (`bool`, default `True`):
-            Whether to use lower-order solvers in the final steps. Only valid for < 15 inference steps. This can
-            stabilize the sampling of DPMSolver for steps < 15, especially for steps <= 10.
-        disable_corrector (`list`, default `[]`):
-            Decides which step to disable the corrector to mitigate the misalignment between `epsilon_theta(x_t, c)`
-            and `epsilon_theta(x_t^c, c)` which can influence convergence for a large guidance scale. Corrector is
-            usually disabled during the first few steps.
-        solver_p (`SchedulerMixin`, default `None`):
-            Any other scheduler that if specified, the algorithm becomes `solver_p + UniC`.
-        use_karras_sigmas (`bool`, *optional*, defaults to `False`):
-            Whether to use Karras sigmas for step sizes in the noise schedule during the sampling process. If `True`,
-            the sigmas are determined according to a sequence of noise levels {σi}.
-        use_exponential_sigmas (`bool`, *optional*, defaults to `False`):
-            Whether to use exponential sigmas for step sizes in the noise schedule during the sampling process.
-        timestep_spacing (`str`, defaults to `"linspace"`):
-            The way the timesteps should be scaled. Refer to Table 2 of the [Common Diffusion Noise Schedules and
-            Sample Steps are Flawed](https://huggingface.co/papers/2305.08891) for more information.
-        steps_offset (`int`, defaults to 0):
-            An offset added to the inference steps, as required by some model families.
-        final_sigmas_type (`str`, defaults to `"zero"`):
-            The final `sigma` value for the noise schedule during the sampling process. If `"sigma_min"`, the final
-            sigma is the same as the last sigma in the training schedule. If `zero`, the final sigma is set to 0.
-    """
 
     _compatibles = [e.name for e in KarrasDiffusionSchedulers]
     order = 1

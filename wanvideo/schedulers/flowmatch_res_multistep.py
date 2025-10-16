@@ -18,7 +18,6 @@ class FlowMatchSchedulerResMultistep():
         self.old_sigma_next = None
 
     def set_timesteps(self, num_inference_steps=100, denoising_strength=1.0, sigmas=None):
-        #Generate the full sigma schedule (from max to min)
         if self.extra_one_step:
             sigma_start = self.sigma_min + \
                 (self.sigma_max - self.sigma_min) * denoising_strength
@@ -36,7 +35,7 @@ class FlowMatchSchedulerResMultistep():
         self.sigmas = self.shift * self.sigmas / \
              (1 + (self.shift - 1) * self.sigmas)
         self.timesteps = self.sigmas * self.num_train_timesteps
-        #print(f"Timesteps: {self.timesteps}, Sigmas: {self.sigmas}")
+
 
 
     def step(self, model_output, timestep, sample):
@@ -76,14 +75,6 @@ class FlowMatchSchedulerResMultistep():
         
 
     def add_noise(self, original_samples, noise, timestep):
-        """
-        Diffusion forward corruption process.
-        Input:
-            - clean_latent: the clean latent with shape [B*T, C, H, W]
-            - noise: the noise with shape [B*T, C, H, W]
-            - timestep: the timestep with shape [B*T]
-        Output: the corrupted latent with shape [B*T, C, H, W]
-        """
         if timestep.ndim == 2:
             timestep = timestep.flatten(0, 1)
         self.sigmas = self.sigmas.to(noise.device)

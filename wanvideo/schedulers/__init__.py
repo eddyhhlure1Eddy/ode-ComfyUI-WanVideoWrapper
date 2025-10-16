@@ -6,16 +6,15 @@ from .flowmatch_pusa import FlowMatchSchedulerPusa
 from .flowmatch_res_multistep import FlowMatchSchedulerResMultistep
 from .scheduling_flow_match_lcm import FlowMatchLCMScheduler
 from .flowmatch_sa_ode_stable import FlowMatchSAODEStableScheduler
+from .humo_lcm_integration import get_humo_lcm_scheduler
 try:
     from .flowmatch_frame_euler_d import FlowMatchFrameEulerDScheduler
 except ImportError:
-    # If the compiled module is not available, create a placeholder
     FlowMatchFrameEulerDScheduler = None
 from diffusers.schedulers import FlowMatchEulerDiscreteScheduler, DEISMultistepScheduler
 try:
     from ...utils import log
 except ImportError:
-    # 如果相对导入失败，创建一个简单的log对象
     class SimpleLog:
         def info(self, msg): print(f"INFO: {msg}")
     log = SimpleLog()
@@ -34,6 +33,7 @@ scheduler_list = [
     "flowmatch_frame_euler_d",
     "flowmatch_sa_ode_stable",
     "sa_ode_stable/lowstep",
+    "humo_lcm",
     "multitalk"
 ]
 
@@ -50,7 +50,7 @@ def get_scheduler(scheduler, steps, start_step, end_step, shift, device, transfo
 
     elif scheduler in ['euler/beta', 'euler']:
         sample_scheduler = FlowMatchEulerDiscreteScheduler(shift=shift, use_beta_sigmas=(scheduler == 'euler/beta'))
-        if flowedit_args: #seems to work better
+        if flowedit_args:
             timesteps, _ = retrieve_timesteps(sample_scheduler, device=device, sigmas=get_sampling_sigmas(steps, shift))
         else:
             sample_scheduler.set_timesteps(steps, device=device, sigmas=sigmas[:-1].tolist() if sigmas is not None else None)
@@ -96,7 +96,7 @@ def get_scheduler(scheduler, steps, start_step, end_step, shift, device, transfo
         denoising_step_list = torch.tensor([999, 750, 500, 250] , dtype=torch.long)
         temp_timesteps = torch.cat((sample_scheduler.timesteps.cpu(), torch.tensor([0], dtype=torch.float32)))
         denoising_step_list = temp_timesteps[1000 - denoising_step_list]
-        #print("denoising_step_list: ", denoising_step_list)
+
         
         if steps != 4:
             raise ValueError("This scheduler is only for 4 steps")
@@ -118,6 +118,13 @@ def get_scheduler(scheduler, steps, start_step, end_step, shift, device, transfo
     elif scheduler in ['flowmatch_sa_ode_stable', 'sa_ode_stable/lowstep']:
         sample_scheduler = FlowMatchSAODEStableScheduler(shift=shift)
         sample_scheduler.set_timesteps(steps, device=device, sigmas=sigmas[:-1].tolist() if sigmas is not None else None)
+    elif scheduler == 'humo_lcm':
+        sample_scheduler = get_humo_lcm_scheduler(
+            steps=steps,
+            shift=shift,
+            device=device,
+            sigmas=sigmas
+        )
     if timesteps is None:
         timesteps = sample_scheduler.timesteps
 
@@ -125,7 +132,7 @@ def get_scheduler(scheduler, steps, start_step, end_step, shift, device, transfo
     if (isinstance(start_step, int) and end_step != -1 and start_step >= end_step) or (not isinstance(start_step, int) and start_step != -1 and end_step >= start_step):
         raise ValueError("start_step must be less than end_step")
 
-    # Determine start and end indices for slicing
+
     start_idx = 0
     end_idx = len(timesteps) - 1
 
@@ -149,10 +156,10 @@ def get_scheduler(scheduler, steps, start_step, end_step, shift, device, transfo
         if end_step != -1:
             end_idx = end_step - 1
 
-    # Slice timesteps and sigmas once, based on indices
+
     timesteps = timesteps[start_idx:end_idx+1]
     sample_scheduler.full_sigmas = sample_scheduler.sigmas.clone()
-    sample_scheduler.sigmas = sample_scheduler.sigmas[start_idx:start_idx+len(timesteps)+1]  # always one longer
+    sample_scheduler.sigmas = sample_scheduler.sigmas[start_idx:start_idx+len(timesteps)+1]
     
     if log_timesteps:
         log.info(f"Using timesteps: {timesteps}")
