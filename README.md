@@ -10,7 +10,7 @@ Modified and optimized by eddy
 
 new change: humo_lcm `keep face
 
-
+👇humo
 
 
 <img width="852" height="415" alt="image" src="https://github.com/user-attachments/assets/4125f046-0041-4769-aaaf-5c2ad9478126" />
@@ -19,12 +19,11 @@ new change: humo_lcm `keep face
 
 tigger:“女人一边用模特步走路，一边对着镜头说话，走在夜晚大街上”
 
-
-
-https://github.com/user-attachments/assets/d3a1a5e6-779b-4b75-be91-a5a3bcaac711
-
-
-mixbase:https://huggingface.co/eddy1111111/humo
+👇odev2
 
 2025 21/10 add iching schedulers
 ![lv_0_20251021160044](https://github.com/user-attachments/assets/ff16321a-33a2-476a-8ad5-fbb4d0bd8ebf)
+
+mixbase:https://huggingface.co/eddy1111111/humo
+
+
