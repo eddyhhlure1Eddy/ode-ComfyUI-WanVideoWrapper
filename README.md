@@ -4,7 +4,9 @@ https://github.com/kijai/ComfyUI-WanVideoWrapper/tree/main/wanvideo/schedulers
 Modified and optimized by eddy
 
 new change: humo_lcm `keep face
-2025 21/10 add iching schedulers
+
+
+
 
 <img width="852" height="415" alt="image" src="https://github.com/user-attachments/assets/4125f046-0041-4769-aaaf-5c2ad9478126" />
 
@@ -18,3 +20,6 @@ https://github.com/user-attachments/assets/d3a1a5e6-779b-4b75-be91-a5a3bcaac711
 
 
 mixbase:https://huggingface.co/eddy1111111/humo
+
+2025 21/10 add iching schedulers
+![lv_0_20251021160044](https://github.com/user-attachments/assets/ff16321a-33a2-476a-8ad5-fbb4d0bd8ebf)
