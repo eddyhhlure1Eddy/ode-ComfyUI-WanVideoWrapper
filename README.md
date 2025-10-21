@@ -1,3 +1,6 @@
+
+new odev2 with lora
+
 Original source from kijai's ComfyUI-WanVideoWrapper
 https://github.com/kijai/ComfyUI-WanVideoWrapper/tree/main/wanvideo/schedulers
 
