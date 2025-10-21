@@ -4,6 +4,7 @@ https://github.com/kijai/ComfyUI-WanVideoWrapper/tree/main/wanvideo/schedulers
 Modified and optimized by eddy
 
 new change: humo_lcm `keep face
+2025 21/10 add iching schedulers
 
 <img width="852" height="415" alt="image" src="https://github.com/user-attachments/assets/4125f046-0041-4769-aaaf-5c2ad9478126" />
 
