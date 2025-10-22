@@ -1,4 +1,6 @@
+👇odev2
 
+2025 21/10 add iching schedulers
 new odev2 with lora:https://huggingface.co/eddy1111111/WAN22.XX_Palingenesis/tree/main
 
 ![output](https://github.com/user-attachments/assets/59aa3bd4-7c10-497f-81cc-20a2402d0f1f)
@@ -21,12 +23,7 @@ new change: humo_lcm `keep face
 <img width="849" height="426" alt="image" src="https://github.com/user-attachments/assets/70d3f33c-6cd8-42d5-ac17-f1bf19d12604" />
 
 tigger:“女人一边用模特步走路，一边对着镜头说话，走在夜晚大街上”
-
-👇odev2
-
-2025 21/10 add iching schedulers
 ![lv_0_20251021160044](https://github.com/user-attachments/assets/ff16321a-33a2-476a-8ad5-fbb4d0bd8ebf)
-
 mixbase:https://huggingface.co/eddy1111111/humo
 
 
