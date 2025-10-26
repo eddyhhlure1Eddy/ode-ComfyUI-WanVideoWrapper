@@ -7,12 +7,13 @@ from .flowmatch_res_multistep import FlowMatchSchedulerResMultistep
 from .scheduling_flow_match_lcm import FlowMatchLCMScheduler
 from .flowmatch_sa_ode_stable import FlowMatchSAODEStableScheduler
 from .humo_lcm_integration import get_humo_lcm_scheduler
+from .fm_rcm import rCMFlowMatchScheduler
 try:
     from .flowmatch_frame_euler_d import FlowMatchFrameEulerDScheduler
 except ImportError:
     FlowMatchFrameEulerDScheduler = None
 try:
-    from .iching_wuxing_scheduler import IChingWuxingScheduler
+    from .iching_wuxing_scheduler_core import IChingWuxingScheduler
 except ImportError:
     IChingWuxingScheduler = None
 from diffusers.schedulers import FlowMatchEulerDiscreteScheduler, DEISMultistepScheduler
@@ -45,7 +46,8 @@ scheduler_list = [
     "iching/wuxing-smooth",
     "iching/wuxing-clean",
     "iching/wuxing-sharp",
-    "iching/wuxing-lowstep"
+    "iching/wuxing-lowstep",
+    "rcm"
 ]
 
 def get_scheduler(scheduler, steps, start_step, end_step, shift, device, transformer_dim=5120, flowedit_args=None, denoise_strength=1.0, sigmas=None, log_timesteps=False):
@@ -141,6 +143,10 @@ def get_scheduler(scheduler, steps, start_step, end_step, shift, device, transfo
             raise ImportError("IChingWuxingScheduler is not available. The compiled module may be missing.")
         sample_scheduler = IChingWuxingScheduler(mode=scheduler)
         sample_scheduler.set_timesteps(steps, device=device)
+    elif scheduler == 'rcm':
+        sample_scheduler = rCMFlowMatchScheduler(num_inference_steps=steps)
+        sample_scheduler.timesteps = sample_scheduler.timesteps.to(device)
+        sample_scheduler.sigmas = sample_scheduler.sigmas.to(device)
     if timesteps is None:
         timesteps = sample_scheduler.timesteps
 
