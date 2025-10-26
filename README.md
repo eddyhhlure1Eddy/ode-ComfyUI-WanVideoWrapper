@@ -1,5 +1,11 @@
 👇odev2
+# I-Ching-Informed Adaptive ODE Scheduler
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17445974.svg)](https://doi.org/10.5281/zenodo.17445974)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Stars](https://img.shields.io/github/stars/eddyhhlure1Eddy/I-Ching-Informed-Adaptive-ODE-Scheduler)](https://github.com/eddyhhlure1Eddy/I-Ching-Informed-Adaptive-ODE-Scheduler/stargazers)
+
+> **Paper**: [IChingWuxingScheduler: A Novel Noise Scheduling Algorithm Based on Traditional Chinese Philosophy for Diffusion Models](https://doi.org/10.5281/zenodo.17445974)
 2025 21/10 add iching schedulers
 new odev2 with lora:https://huggingface.co/eddy1111111/WAN22.XX_Palingenesis/tree/main
 
