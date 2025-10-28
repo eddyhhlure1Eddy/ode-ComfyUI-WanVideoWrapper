@@ -2,6 +2,12 @@
 
 This update's ODE+ is based on the SA ODE version with 8-step optimization parameter fine-tuning. It eliminates most of the native SA ODE drawbacks at the original 8 steps. No correction was applied in the corrector section, but a PC2 path was used to implement a similar correction strategy. Significant improvements were also made in LoRA training, resulting in a cleaner image output.
 
+SA ODE <img width="283" height="379" alt="image" src="https://github.com/user-attachments/assets/bedb095e-5680-4c5b-810e-1b4f2d4dc308" />
+
+ODE+PC2+FW3 <img width="300" height="375" alt="image" src="https://github.com/user-attachments/assets/e831c8d8-7ca8-47a1-a64b-d4ad8ded5a93" />
+
+
+
 👇odev2
 # I-Ching-Informed Adaptive ODE Scheduler
 
