@@ -1,4 +1,9 @@
+# Original source: https://github.com/kijai/ComfyUI-WanVideoWrapper/tree/main/wanvideo/schedulers
+# Modified and optimized by eddy
+
 import torch
+import math
+import importlib
 from .fm_solvers import (FlowDPMSolverMultistepScheduler, get_sampling_sigmas, retrieve_timesteps)
 from .fm_solvers_unipc import FlowUniPCMultistepScheduler
 from .basic_flowmatch import FlowMatchScheduler
@@ -8,10 +13,7 @@ from .scheduling_flow_match_lcm import FlowMatchLCMScheduler
 from .flowmatch_sa_ode_stable import FlowMatchSAODEStableScheduler
 from .humo_lcm_integration import get_humo_lcm_scheduler
 from .fm_rcm import rCMFlowMatchScheduler
-try:
-    from .flowmatch_frame_euler_d import FlowMatchFrameEulerDScheduler
-except ImportError:
-    FlowMatchFrameEulerDScheduler = None
+from .flowmatch_lowstep_d import FlowMatchLowStepScheduler
 try:
     from .iching_wuxing_scheduler_core import IChingWuxingScheduler
 except ImportError:
@@ -35,9 +37,10 @@ scheduler_list = [
     "flowmatch_causvid",
     "flowmatch_distill",
     "flowmatch_pusa",
-    "flowmatch_frame_euler_d",
+    "flowmatch_lowstep_d",
     "flowmatch_sa_ode_stable",
     "sa_ode_stable/lowstep",
+    "ode/+",
     "humo_lcm",
     "multitalk",
     "iching/wuxing",
@@ -123,14 +126,47 @@ def get_scheduler(scheduler, steps, start_step, end_step, shift, device, transfo
     elif scheduler == 'res_multistep':
         sample_scheduler = FlowMatchSchedulerResMultistep(shift=shift)
         sample_scheduler.set_timesteps(steps, denoising_strength=denoise_strength, sigmas=sigmas[:-1].tolist() if sigmas is not None else None)
-    elif scheduler == 'flowmatch_frame_euler_d':
-        if FlowMatchFrameEulerDScheduler is None:
-            raise ImportError("FlowMatchFrameEulerDScheduler is not available. The compiled module may be missing.")
-        sample_scheduler = FlowMatchFrameEulerDScheduler(shift=shift)
+    elif scheduler == 'flowmatch_lowstep_d':
+        sample_scheduler = FlowMatchLowStepScheduler(shift=shift)
         sample_scheduler.set_timesteps(steps, device=device, sigmas=sigmas[:-1].tolist() if sigmas is not None else None)
     elif scheduler in ['flowmatch_sa_ode_stable', 'sa_ode_stable/lowstep']:
         sample_scheduler = FlowMatchSAODEStableScheduler(shift=shift)
         sample_scheduler.set_timesteps(steps, device=device, sigmas=sigmas[:-1].tolist() if sigmas is not None else None)
+    elif scheduler == 'ode/+':
+        # Tuned ODE+ profile (8-step optimized): linear sigmas + mild jitter at last 2 steps
+        order = 2  # AB2 at <=8 steps
+        sample_scheduler = FlowMatchLowStepScheduler(
+            shift=shift,
+            solver_order=order,
+        )
+        # build linear sigmas with small jitter on last 2 steps
+        t = torch.linspace(0, 1, steps + 1, device=device, dtype=torch.float32)
+        custom_sigmas = 1 - t
+        s = shift
+        if abs(s - 1.0) > 1e-6:
+            custom_sigmas = (s * custom_sigmas) / (1 + (s - 1) * custom_sigmas)
+        # jitter: amplitude 0.006 on last 2 steps
+        sj_amp = 0.006
+        sj_fw = 2
+        if sj_amp > 0 and steps >= 2:
+            N = steps + 1
+            idx = torch.arange(N, device=device, dtype=custom_sigmas.dtype)
+            base = torch.sin(math.pi * idx / max(1, N - 1))
+            start = max(0, N - sj_fw - 1)
+            ramp = torch.zeros_like(base)
+            ramp[start:] = torch.linspace(0.0, 1.0, N - start, device=device, dtype=custom_sigmas.dtype)
+            delta = sj_amp * base * ramp
+            custom_sigmas = custom_sigmas + delta
+            custom_sigmas[-1] = torch.tensor(0.0, device=device, dtype=custom_sigmas.dtype)
+            custom_sigmas = torch.clamp(custom_sigmas, 0.0, 1.0)
+            for i in range(1, N):
+                prev = custom_sigmas[i-1]
+                custom_sigmas[i] = torch.minimum(custom_sigmas[i], prev)
+        try:
+            log.info(f"[ode/+] order={order} sj_amp=0.006 sj_fw=2 sigmas[0]={float(custom_sigmas[0])} sigmas[-1]={float(custom_sigmas[-1])}")
+        except Exception:
+            pass
+        sample_scheduler.set_timesteps(steps, device=device, sigmas=custom_sigmas)
     elif scheduler == 'humo_lcm':
         sample_scheduler = get_humo_lcm_scheduler(
             steps=steps,
