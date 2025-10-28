@@ -1,3 +1,7 @@
+👇ode+ 20251027
+
+This update's ODE+ is based on the SA ODE version with 8-step optimization parameter fine-tuning. It eliminates most of the native SA ODE drawbacks at the original 8 steps. No correction was applied in the corrector section, but a PC2 path was used to implement a similar correction strategy. Significant improvements were also made in LoRA training, resulting in a cleaner image output.
+
 👇odev2
 # I-Ching-Informed Adaptive ODE Scheduler
 
